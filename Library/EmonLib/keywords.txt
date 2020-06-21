@@ -1,0 +1,17 @@
+###########################################
+# Syntax Coloring Map For DHT-sensor-library
+###########################################
+
+###########################################
+# Datatypes (KEYWORD1)
+###########################################
+
+EnergyMonitor KEYWORD1
+
+###########################################
+# Methods and Functions (KEYWORD2)
+###########################################
+
+voltage	KEYWORD2
+current	KEYWORD2
+calcVI	KEYWORD2
