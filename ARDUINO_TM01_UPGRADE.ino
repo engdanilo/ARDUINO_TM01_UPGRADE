@@ -26,13 +26,13 @@
 /////////////////////////////////////////////////////INFORMACOES ETHERNET///////////////////
 byte MAC[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
 byte servidor[] = {192, 168, 0, 30};
-IPAddress IP(192, 168, 0, 173);
-//IPAddress IP(10, 50, 16, 10);
-IPAddress DNS(192, 168, 0, 1);
-//IPAddress DNS(10, 50, 16, 1);
-IPAddress GATEWAY(192, 168, 0, 1);
-//IPAddress GATEWAY(10, 50, 16, 1);
-IPAddress SUBNET(255, 255, 255, 0);
+//IPAddress IP(192, 168, 0, 173);
+IPAddress IP(10, 50, 16, 10);
+//IPAddress DNS(192, 168, 0, 1);
+IPAddress DNS(10, 50, 16, 1);
+//IPAddress GATEWAY(192, 168, 0, 1);
+IPAddress GATEWAY(10, 50, 16, 1);
+//IPAddress SUBNET(255, 255, 255, 0);
 #define portaHTTP 80
 EthernetClient clienteArduino;
 #define TEMPO_PARA_ENVIAR_DADOS 30000
@@ -153,10 +153,12 @@ void setup() {
 #endif
 
   //Inicialização da Ethernet Shield
+  //Ethernet.begin(MAC, IP, DNS, GATEWAY);
   Ethernet.begin(MAC);
 
   if (Ethernet.begin(MAC) == 0) {
     Serial.println("A conexão falhou");
+    //Ethernet.begin(MAC, IP, DNS, GATEWAY);
     Ethernet.begin(MAC);
   }
   Serial.println("Conectado a rede");
