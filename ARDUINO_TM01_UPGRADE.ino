@@ -164,7 +164,7 @@ void setup() {
   Serial.println("Conectado a rede");
   Serial.println(Ethernet.localIP());
   
-/*
+
 // Verifica se ha hardware conectado
   if (Ethernet.hardwareStatus() == EthernetNoHardware) {
     Serial.println("Nao foi encontrado Ethernet shield. :(");
@@ -174,7 +174,7 @@ void setup() {
   }
   if (Ethernet.linkStatus() == LinkOFF) {
     Serial.println("O cabo Ethernet nao esta conectado.");
-*/
+
 
   //A limpeza da EEPROM executada uma vez, necessitando que o sketch seja executado de novo com este código comentado
   /*for (int nL = 0; nL < espaco_da_EEPROM; nL++) {
