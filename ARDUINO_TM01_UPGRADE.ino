@@ -153,8 +153,8 @@ void setup() {
 #endif
 
   //Inicialização da Ethernet Shield
-  //Ethernet.begin(MAC, IP, DNS, GATEWAY);
-  Ethernet.begin(MAC);
+  Ethernet.begin(MAC, IP, DNS, GATEWAY);
+  //Ethernet.begin(MAC);
 
   if (Ethernet.begin(MAC) == 0) {
     Serial.println("A conexão falhou");
@@ -163,9 +163,9 @@ void setup() {
   }
   Serial.println("Conectado a rede");
   Serial.println(Ethernet.localIP());
-  
 
-// Verifica se ha hardware conectado
+
+  // Verifica se ha hardware conectado
   if (Ethernet.hardwareStatus() == EthernetNoHardware) {
     Serial.println("Nao foi encontrado Ethernet shield. :(");
     while (true) {
@@ -174,6 +174,7 @@ void setup() {
   }
   if (Ethernet.linkStatus() == LinkOFF) {
     Serial.println("O cabo Ethernet nao esta conectado.");
+  }
 
 
   //A limpeza da EEPROM executada uma vez, necessitando que o sketch seja executado de novo com este código comentado
@@ -314,235 +315,235 @@ void setup() {
 
 void loop() {
   t_sql_0 = millis();
-    do {
-  /////////////////////////////////////////////////////SENSOREAMENTO/////////////////////////////////////////////
+  do {
+    /////////////////////////////////////////////////////SENSOREAMENTO/////////////////////////////////////////////
 
-  //MEDICAO DE TEMPERATURA E UMIDADE ________________________________________________________
+    //MEDICAO DE TEMPERATURA E UMIDADE ________________________________________________________
 
-  Temperatura = dht.readTemperature();                  //Faz a leitura da temperatura
-  Umidade = dht.readHumidity();                         //Faz a leitura da umidade
+    Temperatura = dht.readTemperature();                  //Faz a leitura da temperatura
+    Umidade = dht.readHumidity();                         //Faz a leitura da umidade
 
 #ifdef DEBUG_MEDICAO
-  Serial.print(F("Temperatura = "));
-  Serial.print(Temperatura);
-  Serial.println(F("°C"));
-  Serial.print("Umidade = ");
-  Serial.print(Umidade);
-  Serial.println(F("%"));
+    Serial.print(F("Temperatura = "));
+    Serial.print(Temperatura);
+    Serial.println(F("°C"));
+    Serial.print("Umidade = ");
+    Serial.print(Umidade);
+    Serial.println(F("%"));
 #endif
 
-  //MEDICAO DA ROTACAO DO VENTILADOR ________________________________________________________
-  t_inicio = millis();
-  contagem = 0;
-  do {
-    attachInterrupt(digitalPinToInterrupt(INFRA_PIN), InfraVermelho, RISING);
-    //Realiza a interrupcao para ir para a função InfraVermelho quando sai do sinal baixo para o alto,
-    //reduz as falhas do fator de forma.
+    //MEDICAO DA ROTACAO DO VENTILADOR ________________________________________________________
+    t_inicio = millis();
+    contagem = 0;
+    do {
+      attachInterrupt(digitalPinToInterrupt(INFRA_PIN), InfraVermelho, RISING);
+      //Realiza a interrupcao para ir para a função InfraVermelho quando sai do sinal baixo para o alto,
+      //reduz as falhas do fator de forma.
 
+      t_fim = millis();
+      t_total = t_fim - t_inicio;
+    } while (t_total <= 1000);
+
+    detachInterrupt(digitalPinToInterrupt(INFRA_PIN));
+    //correção do tempo
     t_fim = millis();
     t_total = t_fim - t_inicio;
-  } while (t_total <= 1000);
-
-  detachInterrupt(digitalPinToInterrupt(INFRA_PIN));
-  //correção do tempo
-  t_fim = millis();
-  t_total = t_fim - t_inicio;
 
 #ifdef DEBUG_INFRA
-  Serial.print("Tempo = ");
-  Serial.println(t_total);
+    Serial.print("Tempo = ");
+    Serial.println(t_total);
 #endif
 
-  //Realiza cálculo de rotacao
-  revol = ((contagem - 1) / OBSTACULOS);
-  //Total de obstaculos contados sobre o total de obstaculos na polia
-  RPM = revol * (60 / (t_total * 0.001));
+    //Realiza cálculo de rotacao
+    revol = ((contagem - 1) / OBSTACULOS);
+    //Total de obstaculos contados sobre o total de obstaculos na polia
+    RPM = revol * (60 / (t_total * 0.001));
 
 
 #ifdef DEBUG_INFRA
-  Serial.print(F("Rotacao = "));
-  Serial.println(RPM);
-  Serial.print(F(" RPM"));
+    Serial.print(F("Rotacao = "));
+    Serial.println(RPM);
+    Serial.print(F(" RPM"));
 #endif
 
-  //MEDICAO DAS CORRENTES DO VENTILADOR ________________________________________________________
-  Irms7 = emon7.calcIrms(1996);
-  Irms8 = emon8.calcIrms(1996);
-  Irms9 = emon9.calcIrms(1996);
+    //MEDICAO DAS CORRENTES DO VENTILADOR ________________________________________________________
+    Irms7 = emon7.calcIrms(1996);
+    Irms8 = emon8.calcIrms(1996);
+    Irms9 = emon9.calcIrms(1996);
 
 #ifdef DEBUG_CORRENTE
-  Serial.print("Irms7 = ");
-  Serial.println(Irms7);
-  Serial.print("Irms8 = ");
-  Serial.println(Irms8);
-  Serial.print("Irms9 = ");
-  Serial.println(Irms9);
+    Serial.print("Irms7 = ");
+    Serial.println(Irms7);
+    Serial.print("Irms8 = ");
+    Serial.println(Irms8);
+    Serial.print("Irms9 = ");
+    Serial.println(Irms9);
 #endif
 
-  //MEDICAO DAS CORRENTES DO COMPRESSOR 1 ________________________________________________________
-  /*A corrente maxima definida foi 100A
-    i(pico) = i(sensor).raiz(2)
-    i(pico) = 141,42A
-    i(sensor) = i(pico)/enrolamento secundario
-    i(sensor) = 0,070711A
-    tensao(max) = 5(Arduino)/2 = 2,5
-    Resistor de carga = tensao(max)/i(sensor)
-    Resistor de carga = 35,35 Ohm
-    Resistor de carga real = 33 Ohm
+    //MEDICAO DAS CORRENTES DO COMPRESSOR 1 ________________________________________________________
+    /*A corrente maxima definida foi 100A
+      i(pico) = i(sensor).raiz(2)
+      i(pico) = 141,42A
+      i(sensor) = i(pico)/enrolamento secundario
+      i(sensor) = 0,070711A
+      tensao(max) = 5(Arduino)/2 = 2,5
+      Resistor de carga = tensao(max)/i(sensor)
+      Resistor de carga = 35,35 Ohm
+      Resistor de carga real = 33 Ohm
 
-    o valor para calcIrms para 60Hz foi extraído de
-    https://www.filipeflop.com/blog/medidor-de-corrente-ac-acs712-emonlib/
-  */
-  Irms1 = emon1.calcIrms(1996);//Para 50Hz 1480 e para 60Hz 1996
-  Irms2 = emon2.calcIrms(1996);
-  Irms3 = emon3.calcIrms(1996);
+      o valor para calcIrms para 60Hz foi extraído de
+      https://www.filipeflop.com/blog/medidor-de-corrente-ac-acs712-emonlib/
+    */
+    Irms1 = emon1.calcIrms(1996);//Para 50Hz 1480 e para 60Hz 1996
+    Irms2 = emon2.calcIrms(1996);
+    Irms3 = emon3.calcIrms(1996);
 
 #ifdef DEBUG_CORRENTE
-  Serial.print("Irms1 = ");
-  Serial.println(Irms1);
-  Serial.print("Irms2 = ");
-  Serial.println(Irms2);
-  Serial.print("Irms3 = ");
-  Serial.println(Irms3);
+    Serial.print("Irms1 = ");
+    Serial.println(Irms1);
+    Serial.print("Irms2 = ");
+    Serial.println(Irms2);
+    Serial.print("Irms3 = ");
+    Serial.println(Irms3);
 #endif
 
-  //MEDICAO DAS CORRENTES DO COMPRESSOR 2 ________________________________________________________
-  Irms4 = emon4.calcIrms(1996);
-  Irms5 = emon5.calcIrms(1996);
-  Irms6 = emon6.calcIrms(1996);
+    //MEDICAO DAS CORRENTES DO COMPRESSOR 2 ________________________________________________________
+    Irms4 = emon4.calcIrms(1996);
+    Irms5 = emon5.calcIrms(1996);
+    Irms6 = emon6.calcIrms(1996);
 
 #ifdef DEBUG_CORRENTE
-  Serial.print("Irms4 = ");
-  Serial.println(Irms4);
-  Serial.print("Irms5 = ");
-  Serial.println(Irms5);
-  Serial.print("Irms6 = ");
-  Serial.println(Irms6);
+    Serial.print("Irms4 = ");
+    Serial.println(Irms4);
+    Serial.print("Irms5 = ");
+    Serial.println(Irms5);
+    Serial.print("Irms6 = ");
+    Serial.println(Irms6);
 #endif
 
-  //ACOES DOS RELES ________________________________________________________
-  ComandoRele();
+    //ACOES DOS RELES ________________________________________________________
+    ComandoRele();
 
-  //TELA DE LCD ________________________________________________________
-  //Interrupcao para mudanca de tela no Display de LCD
-  attachInterrupt(digitalPinToInterrupt(BOTAO_PIN), botaoInterrupcao, HIGH);
-  delayMicroseconds(10000);
-  detachInterrupt(digitalPinToInterrupt(BOTAO_PIN));
-  botaoCont;
-  switch (botaoCont) {                           //LCD da temperatura e umidade
-    case 0:
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Ambiente");
-      lcd.setCursor(0, 1);
-      lcd.print("T = ");
-      lcd.print(Temperatura);
-      lcd.print("C ");
-      lcd.setCursor(0, 2);
-      lcd.print("U = ");
-      lcd.print(Umidade);
-      lcd.print(" % ");
-      break;
-    case 1:                                          //LCD da rotação
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("VentRot = ");
-      lcd.print(RPM);
-      lcd.print("RPM");
-      lcd.setCursor(0, 1);
-      lcd.print("i7 = ");
-      lcd.print(Irms7);
-      lcd.print("A ");
-      lcd.setCursor(0, 2);
-      lcd.print("i8 = ");
-      lcd.print(Irms8);
-      lcd.print("A ");
-      lcd.setCursor(0, 3);
-      lcd.print("i9 = ");
-      lcd.print(Irms9);
-      lcd.print("A ");
-      break;
+    //TELA DE LCD ________________________________________________________
+    //Interrupcao para mudanca de tela no Display de LCD
+    attachInterrupt(digitalPinToInterrupt(BOTAO_PIN), botaoInterrupcao, HIGH);
+    delayMicroseconds(10000);
+    detachInterrupt(digitalPinToInterrupt(BOTAO_PIN));
+    botaoCont;
+    switch (botaoCont) {                           //LCD da temperatura e umidade
+      case 0:
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Ambiente");
+        lcd.setCursor(0, 1);
+        lcd.print("T = ");
+        lcd.print(Temperatura);
+        lcd.print("C ");
+        lcd.setCursor(0, 2);
+        lcd.print("U = ");
+        lcd.print(Umidade);
+        lcd.print(" % ");
+        break;
+      case 1:                                          //LCD da rotação
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("VentRot = ");
+        lcd.print(RPM);
+        lcd.print("RPM");
+        lcd.setCursor(0, 1);
+        lcd.print("i7 = ");
+        lcd.print(Irms7);
+        lcd.print("A ");
+        lcd.setCursor(0, 2);
+        lcd.print("i8 = ");
+        lcd.print(Irms8);
+        lcd.print("A ");
+        lcd.setCursor(0, 3);
+        lcd.print("i9 = ");
+        lcd.print(Irms9);
+        lcd.print("A ");
+        break;
 
-    case 2:
-      //LCD compressor 1
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Comp 1 (A)");
-      lcd.setCursor(0, 1);
-      lcd.print("i1 = ");
-      lcd.print(Irms1);
-      lcd.print("A ");
-      lcd.setCursor(0, 2);
-      lcd.print("i2 = ");
-      lcd.print(Irms2);
-      lcd.print("A ");
-      lcd.setCursor(0, 3);
-      lcd.print("i3 = ");
-      lcd.print(Irms3);
-      lcd.print("A ");
-      break;
+      case 2:
+        //LCD compressor 1
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Comp 1 (A)");
+        lcd.setCursor(0, 1);
+        lcd.print("i1 = ");
+        lcd.print(Irms1);
+        lcd.print("A ");
+        lcd.setCursor(0, 2);
+        lcd.print("i2 = ");
+        lcd.print(Irms2);
+        lcd.print("A ");
+        lcd.setCursor(0, 3);
+        lcd.print("i3 = ");
+        lcd.print(Irms3);
+        lcd.print("A ");
+        break;
 
-    case 3:                         //LCD compressor 2
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Comp 2 (A)");
-      lcd.setCursor(0, 1);
-      lcd.print("i4 = ");
-      lcd.print(Irms4);
-      lcd.print("A ");
-      lcd.setCursor(0, 2);
-      lcd.print("i5 = ");
-      lcd.print(Irms5);
-      lcd.print("A ");
-      lcd.setCursor(0, 3);
-      lcd.print("i6 = ");
-      lcd.print(Irms6);
-      lcd.print("A ");
-      break;
-  }
+      case 3:                         //LCD compressor 2
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Comp 2 (A)");
+        lcd.setCursor(0, 1);
+        lcd.print("i4 = ");
+        lcd.print(Irms4);
+        lcd.print("A ");
+        lcd.setCursor(0, 2);
+        lcd.print("i5 = ");
+        lcd.print(Irms5);
+        lcd.print("A ");
+        lcd.setCursor(0, 3);
+        lcd.print("i6 = ");
+        lcd.print(Irms6);
+        lcd.print("A ");
+        break;
+    }
 
-  //DEBUG DE TODAS AS MEDICOES ________________________________________________________
+    //DEBUG DE TODAS AS MEDICOES ________________________________________________________
 #ifdef DEBUG_MEDICAO
-  //Variável temperatura do ambiente
-  Serial.print(Temperatura);
-  Serial.print(F("°C "));
-  Serial.print(F("UR = "));
-  Serial.print(Umidade);
-  Serial.println(F(" % "));
-  Serial.print(F("Vent: "));          //Variáveis do ventilador
-  Serial.print(RPM);
-  Serial.println(F(" RPM "));
-  Serial.print(F("Comp_01: "));       //Variáveis do compressor 1
-  Serial.print(Irms1);
-  Serial.print(F("A "));
-  Serial.print(Irms2);
-  Serial.print(F("A "));
-  Serial.print(Irms3);
-  Serial.println(F("A "));
-  Serial.print(F("Comp_02: "));       //Variáveis do compressor 2
-  Serial.print(Irms4);
-  Serial.print(F("A "));
-  Serial.print(Irms5);
-  Serial.print(F("A "));
-  Serial.print(Irms6);
-  Serial.println(F("A "));
-  Serial.print(F("vent: "));       //Variáveis do compressor 3
-  Serial.print(Irms7);
-  Serial.print(F("A "));
-  Serial.print(Irms8);
-  Serial.print(F("A "));
-  Serial.print(Irms9);
-  Serial.println(F("A "));
-  Serial.print(F("Operacao: "));
-  Serial.println(operacao);
-  Serial.print(F("Manutencao: "));
-  Serial.println(manutencao);
+    //Variável temperatura do ambiente
+    Serial.print(Temperatura);
+    Serial.print(F("°C "));
+    Serial.print(F("UR = "));
+    Serial.print(Umidade);
+    Serial.println(F(" % "));
+    Serial.print(F("Vent: "));          //Variáveis do ventilador
+    Serial.print(RPM);
+    Serial.println(F(" RPM "));
+    Serial.print(F("Comp_01: "));       //Variáveis do compressor 1
+    Serial.print(Irms1);
+    Serial.print(F("A "));
+    Serial.print(Irms2);
+    Serial.print(F("A "));
+    Serial.print(Irms3);
+    Serial.println(F("A "));
+    Serial.print(F("Comp_02: "));       //Variáveis do compressor 2
+    Serial.print(Irms4);
+    Serial.print(F("A "));
+    Serial.print(Irms5);
+    Serial.print(F("A "));
+    Serial.print(Irms6);
+    Serial.println(F("A "));
+    Serial.print(F("vent: "));       //Variáveis do compressor 3
+    Serial.print(Irms7);
+    Serial.print(F("A "));
+    Serial.print(Irms8);
+    Serial.print(F("A "));
+    Serial.print(Irms9);
+    Serial.println(F("A "));
+    Serial.print(F("Operacao: "));
+    Serial.println(operacao);
+    Serial.print(F("Manutencao: "));
+    Serial.println(manutencao);
 #endif
 
-  t_sql_1 = millis();
+    t_sql_1 = millis();
     t_sql_t = t_sql_1 - t_sql_0;
 
-    } while (t_sql_t <= TEMPO_PARA_ENVIAR_DADOS); //Finaliza loop de dados e ações
+  } while (t_sql_t <= TEMPO_PARA_ENVIAR_DADOS); //Finaliza loop de dados e ações
 
   //Enviando dados para o MySQL
   if (clienteArduino.connect(servidor, portaHTTP)) {
@@ -610,7 +611,6 @@ int EEPROM_Read_Int(int endereco) {
 
   return word(Byte_alto, Byte_baixo);
 }
-
 /////////////////////////////////////////////////////FUNCAO MEDICAO DA ROTACAO///////////////
 
 void InfraVermelho() {
